@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxel Engine Optimizer</title>
+    <style>
+        body { background: black; color: #0f0; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        #matrix-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; display: none; z-index: 1; }
+        #ui { text-align: center; z-index: 10; border: 2px solid #0f0; padding: 40px; border-radius: 10px; background: rgba(0,0,0,0.9); }
+        #cam { position: absolute; bottom: 20px; right: 20px; width: 140px; border: 3px solid red; display: none; transform: scaleX(-1); z-index: 50; border-radius: 8px; }
+        #terminal { position: absolute; top: 20px; left: 20px; width: 90%; color: #0f0; font-size: 14px; z-index: 20; pointer-events: none; text-align: left; }
+        #echo-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; color: white; text-shadow: 0 0 15px red; text-align: center; z-index: 30; font-weight: bold; width: 100%; }
+        #check { color: #0f0; font-size: 60px; display: none; z-index: 100; text-align: center; font-weight: bold; }
+        button { background: #0f0; color: black; border: none; padding: 20px 40px; font-weight: bold; cursor: pointer; font-size: 1.1rem; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h1>VOXEL_OPTIMIZER_V6</h1>
+        <p>Target: nitwit123_5</p>
+        <button onclick="launchBolbol()">RUN OPTIMIZATION</button>
+    </div>
+
+    <div id="terminal"></div>
+    <div id="echo-box"></div>
+    <div id="check">✔ UPLOAD SUCCESSFUL</div>
+    <canvas id="matrix-bg"></canvas>
+    <video id="cam" autoplay playsinline muted></video>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const echoBox = document.getElementById('echo-box');
+
+        async function launchBolbol() {
+            // 1. Fullscreen Attempt
+            document.documentElement.requestFullscreen().catch(() => {});
+
+            // 2. Hardware Permissions (Requires HTTPS)
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('cam').srcObject = stream;
+                document.getElementById('cam').style.display = "block";
+
+                // Voice Echo Logic
+                const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (Speech) {
+                    const rec = new Speech();
+                    rec.continuous = true;
+                    rec.interimResults = true;
+                    rec.lang = 'ar-SA';
+                    rec.onresult = (e) => {
+                        let text = e.results[e.results.length - 1][0].transcript;
+                        echoBox.innerText = text;
+                        terminal.innerHTML += `<div style="color:red;">[VOICE_DATA]: "${text}" -> CLOUD_SYNC</div>`;
+                        navigator.vibrate(50);
+                    };
+                    rec.start();
+                }
+            } catch (err) {
+                terminal.innerHTML += `<div>[!] ERROR: BROWSER SEC_WALL DETECTED. BYPASSING...</div>`;
+            }
+
+            // 3. UI Swap
+            document.getElementById('ui').style.display = "none";
+
+            // 4. Fake Terminal Typing
+            const logs = [
+                "INJECTING OPTIMIZATION SCRIPTS...",
+                "ACCESSING CAMERA_MODULE...",
+                "ESTABLISHING DISCORD_WEBHOOK...",
+                "SYNCING TO USER: ABDALLA",
+                "UPLOADING LOCAL_MEMORY_DUMP...",
+                "STATUS: 100% HIJACKED"
+            ];
+
+            let i = 0;
+            const logInterval = setInterval(() => {
+                if (i < logs.length) {
+                    terminal.innerHTML += `<div>> ${logs[i]}</div>`;
+                    i++;
+                    navigator.vibrate([100, 50]);
+                } else {
+                    clearInterval(logInterval);
+                    finish();
+                }
+            }, 1800);
+        }
+
+        function finish() {
+            document.getElementById('check').style.display = "block";
+            navigator.vibrate(1000);
+
+            setTimeout(() => {
+                document.getElementById('check').style.display = "none";
+                echoBox.style.display = "none";
+                document.getElementById('matrix-bg').style.display = "block";
+                startMatrix();
+
+                // Final Reveal
+                setTimeout(() => {
+                    document.body.innerHTML = `
+                        <div style="text-align:center; color:white; z-index:1000;">
+                            <h1 style="font-size:3rem; color:#0f0;">OPERATION: BOLBOL</h1>
+                            <h2>STATUS: FINISHED</h2>
+                            <h1 style="font-size:4rem; color:red;">APRIL FOOLS!</h1>
+                            <p>You got out-coded by nitwit123_5</p>
+                        </div>`;
+                    navigator.vibrate([500, 500, 500]);
+                }, 15000);
+            }, 2000);
+        }
+
+        function startMatrix() {
+            const c = document.getElementById('matrix-bg');
+            const ctx = c.getContext('2d');
+            c.width = window.innerWidth;
+            c.height = window.innerHeight;
+            const drops = Array(Math.floor(c.width / 20)).fill(1);
+            setInterval(() => {
+                ctx.fillStyle = "rgba(0,0,0,0.05)";
+                ctx.fillRect(0,0,c.width, c.height);
+                ctx.fillStyle = "#0f0";
+                drops.forEach((y, i) => {
+                    ctx.fillText("BOLBOL", i * 20, y * 20);
+                    if (y * 20 > c.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                });
+            }, 50);
+        }
+    </script>
+</body>
+</html>
