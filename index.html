@@ -2,121 +2,86 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Kernel Update</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SYSTEM_FAILURE_0x0012</title>
     <style>
-        body { background: #000; color: #f00; font-family: 'Courier New', monospace; margin: 0; overflow-x: hidden; height: 100vh; display: flex; flex-direction: column; }
-        #ui { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 1000; background: rgba(0,0,0,0.9); padding: 50px; border: 1px solid #333; }
-        #terminal { padding: 20px; color: #0f0; font-size: 14px; line-height: 1.5; flex-grow: 1; overflow-y: scroll; scroll-behavior: smooth; }
-        #cam-container { position: sticky; bottom: 10px; right: 10px; width: 150px; height: 110px; align-self: flex-end; z-index: 100; transition: all 0.3s; }
-        #cam { width: 100%; border: 2px solid red; transform: scaleX(-1); border-radius: 10px; box-shadow: 0 0 15px red; }
-        button { background: #111; color: #fff; border: 1px solid #ff0000; padding: 20px 50px; font-size: 1.5rem; cursor: pointer; font-weight: bold; box-shadow: 0 0 10px red; }
-        .danger { color: red; font-weight: bold; }
-        @keyframes chaos-shake {
-            0% { transform: translate(0,0); }
-            25% { transform: translate(var(--s), var(--s)); }
-            50% { transform: translate(calc(-1 * var(--s)), var(--s)); }
-            75% { transform: translate(var(--s), calc(-1 * var(--s))); }
-            100% { transform: translate(0,0); }
-        }
+        body { background: #000; color: #0f0; font-family: monospace; margin: 0; overflow: hidden; height: 100vh; }
+        #ui { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; background: #000; }
+        #terminal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; font-size: 13px; overflow-y: hidden; }
+        #cam-layer { position: absolute; bottom: 20px; right: 20px; width: 130px; border: 2px solid red; z-index: 100; border-radius: 8px; box-shadow: 0 0 20px red; display: none; }
+        #cam { width: 100%; transform: scaleX(-1); border-radius: 8px; }
+        button { background: #111; color: #f00; border: 2px solid #f00; padding: 20px 50px; font-size: 1.5rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .danger { color: #fff; background: #f00; font-weight: bold; padding: 0 4px; }
     </style>
 </head>
-<body style="--s: 0px;">
-
+<body>
     <div id="ui">
-        <h2 style="color:white;">CRITICAL KERNEL ERROR</h2>
-        <p style="color:#666;">Manual override required.</p>
-        <button onclick="ignite()">FIX SYSTEM</button>
+        <button onclick="takeover()">RUN SYSTEM REPAIR</button>
     </div>
-
     <div id="terminal"></div>
-    
-    <div id="cam-container">
-        <video id="cam" autoplay playsinline muted></video>
-    </div>
+    <div id="cam-layer"><video id="cam" autoplay playsinline muted></video></div>
 
     <script>
         const term = document.getElementById('terminal');
-        const body = document.body;
-        let shakeIntensity = 0;
-
-        function botSay(text) {
-            const speech = new SpeechSynthesisUtterance(text);
-            speech.lang = 'ar-SA';
-            speech.rate = 0.7;
-            speech.pitch = 0.2;
-            window.speechSynthesis.speak(speech);
+        
+        function speak(t) {
+            const s = new SpeechSynthesisUtterance(t);
+            s.lang = 'ar-SA'; s.rate = 0.7; s.pitch = 0.1;
+            window.speechSynthesis.speak(s);
         }
 
-        async function startEcho() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const source = ctx.createMediaStreamSource(stream);
-                const delay = ctx.createDelay(5.0);
-                delay.delayTime.value = 0.5; // 0.5s echo delay
-                const feedback = ctx.createGain();
-                feedback.gain.value = 0.4; // Repeat volume
-
-                source.connect(delay);
-                delay.connect(feedback);
-                feedback.connect(delay);
-                delay.connect(ctx.destination);
-            } catch(e) { console.log("Echo failed"); }
-        }
-
-        async function ignite() {
+        async function takeover() {
             document.getElementById('ui').style.display = 'none';
             document.documentElement.requestFullscreen().catch(() => {});
             
-            // 1. Audio Echo & Camera
-            startEcho();
+            // 1. MIC ECHO + CAMERA
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
                 document.getElementById('cam').srcObject = stream;
+                document.getElementById('cam-layer').style.display = 'block';
+                
+                const source = audioCtx.createMediaStreamSource(stream);
+                const delay = audioCtx.createDelay(); delay.delayTime.value = 0.4;
+                const feedback = audioCtx.createGain(); feedback.gain.value = 0.5;
+                source.connect(delay); delay.connect(feedback); feedback.connect(delay); delay.connect(audioCtx.destination);
             } catch(e) {}
 
-            // 2. The Infinite Loop
-            botSay("بدء عملية تدمير البيانات. أنا أسمع أنفاسك الآن");
-            
+            speak("أنا بلبل. لقد سيطرت على هاتفك بالكامل. هل تسمع صدى صوتك؟ هذا أنا أراقبك.");
+
+            // 2. GET REAL PHONE DATA
+            let batLevel = "??";
+            try {
+                const battery = await navigator.getBattery();
+                batLevel = Math.round(battery.level * 100) + "%";
+            } catch(e) {}
+
+            // 3. INFINITE HIJACK LOOP
             setInterval(() => {
-                // Increase Shake
-                shakeIntensity += 0.5;
-                body.style.setProperty('--s', shakeIntensity + 'px');
-                body.style.animation = `chaos-shake 0.1s infinite`;
-                
-                // Force Vibration
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                // High-Intensity Vibrate
+                if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
 
-                // Auto-Typing Content
-                const msgs = [
-                    "[!] EXTRACTING PRIVATE_CHAT_DB...",
-                    "> ACCESSING FRONT_CAMERA_RAW...",
-                    "[DANGER] CONTACTS SENT TO SERVER",
-                    "> BYPASSING LOCAL ENCRYPTION...",
-                    "[LOG] GPS_COORD: 29.3759, 47.9774",
-                    "> SCANNING FOR BIOMETRICS..."
+                const logs = [
+                    `[STOLEN] BATTERY_LIFE: ${batLevel}`,
+                    `[STOLEN] NETWORK_TYPE: ${navigator.connection ? navigator.connection.effectiveType : '4G'}`,
+                    `[STOLEN] WHATSAPP_MESSAGES... UPLOADING`,
+                    `[STOLEN] RECENT_PHOTOS... SENDING TO ABDALLA`,
+                    `[DANGER] PHONE_TEMPERATURE: 92°C`,
+                    `[INFO] IS YOUR NAME HASSAN? I AM CHECKING...`
                 ];
-                const msg = msgs[Math.floor(Math.random() * msgs.length)];
+                
                 const div = document.createElement('div');
-                div.className = Math.random() > 0.7 ? 'danger' : '';
-                div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                div.innerHTML = `<span class="danger">#</span> ${logs[Math.floor(Math.random()*logs.length)]}`;
                 term.appendChild(div);
-
-                // Auto-Scroll Logic (Follow the text)
-                term.scrollTop = term.scrollHeight;
-
-                // Talking Stalker
-                if(shakeIntensity % 10 === 0) {
-                    botSay("لماذا تحاول الهرب؟ لا يمكنك إغلاق هذا المتصفح");
-                }
+                
+                if (term.childNodes.length > 30) term.removeChild(term.firstChild);
             }, 1000);
-        }
 
-        // Force Vibrate on every touch (Bypasses some Chrome blocks)
-        window.addEventListener('touchstart', () => {
-            if (navigator.vibrate) navigator.vibrate(500);
-        });
+            // Repeat the "Stalker" questions every 12 seconds
+            setInterval(() => {
+                speak("هل اسمك محمود؟ أم أنت حسن؟ لا تحاول الهروب، أنا أراك من الكاميرا.");
+            }, 12000);
+        }
     </script>
 </body>
 </html>
