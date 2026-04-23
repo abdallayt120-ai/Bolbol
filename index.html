@@ -3,124 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Update</title>
+    <title>System Verification</title>
     <style>
-        body { background: black; color: #0f0; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        #matrix-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; display: none; z-index: 1; }
-        #ui { text-align: center; z-index: 10; padding: 40px; color: white; }
-        #cam { position: absolute; bottom: 20px; right: 20px; width: 140px; border: 3px solid red; display: none; transform: scaleX(-1); z-index: 50; border-radius: 8px; }
-        #terminal { position: absolute; top: 20px; left: 20px; width: 90%; color: #0f0; font-family: monospace; font-size: 14px; z-index: 20; pointer-events: none; text-align: left; }
-        #echo-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; color: white; text-shadow: 0 0 15px red; text-align: center; z-index: 30; font-weight: bold; width: 100%; }
-        #check { color: #0f0; font-size: 60px; display: none; z-index: 100; text-align: center; font-weight: bold; font-family: monospace; }
-        button { background: #333; color: white; border: 1px solid #555; padding: 15px 60px; font-size: 1.1rem; border-radius: 5px; cursor: pointer; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        #ui { text-align: center; z-index: 100; transition: 0.5s; }
+        #terminal { position: absolute; top: 10px; left: 10px; width: 90%; color: #0f0; font-size: 13px; z-index: 20; text-align: left; }
+        #cam { position: absolute; bottom: 15px; right: 15px; width: 120px; border: 2px solid red; display: none; transform: scaleX(-1); z-index: 60; border-radius: 10px; }
+        button { background: #111; color: #fff; border: 1px solid #444; padding: 25px 60px; font-size: 1.2rem; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .danger { color: red; font-weight: bold; }
+        .shake { animation: shake 0.1s infinite; }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(0); } }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <p style="color: #ccc; margin-bottom: 20px;">To view this content, click continue.</p>
-        <button onclick="launchBolbol()">CONTINUE</button>
+        <p style="color: #666; margin-bottom: 20px;">Verification required to continue.</p>
+        <button onclick="startStalker()">CONTINUE</button>
     </div>
 
     <div id="terminal"></div>
-    <div id="echo-box"></div>
-    <div id="check">✔ UPLOAD SUCCESSFUL</div>
-    <canvas id="matrix-bg"></canvas>
     <video id="cam" autoplay playsinline muted></video>
 
     <script>
-        const terminal = document.getElementById('terminal');
-        const echoBox = document.getElementById('echo-box');
+        const term = document.getElementById('terminal');
 
-        async function launchBolbol() {
-            document.documentElement.requestFullscreen().catch(() => {});
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('cam').srcObject = stream;
-                document.getElementById('cam').style.display = "block";
-
-                const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (Speech) {
-                    const rec = new Speech();
-                    rec.continuous = true;
-                    rec.interimResults = true;
-                    rec.lang = 'ar-SA';
-                    rec.onresult = (e) => {
-                        let text = e.results[e.results.length - 1][0].transcript;
-                        echoBox.innerText = text;
-                        terminal.innerHTML += `<div style="color:red;">[VOICE_RECORDING]: "${text}" -> SENDING...</div>`;
-                        navigator.vibrate(50);
-                    };
-                    rec.start();
-                }
-            } catch (err) {}
-
-            document.getElementById('ui').style.display = "none";
-
-            const logs = [
-                "AUTHENTICATING USER...",
-                "ACCESSING MEDIA HARDWARE...",
-                "ESTABLISHING REMOTE CONNECTION...",
-                "SYNCING DATA TO ABDALLA...",
-                "BYPASSING SECURITY PROTOCOLS...",
-                "STATUS: HIJACK SUCCESSFUL"
-            ];
-
-            let i = 0;
-            const logInterval = setInterval(() => {
-                if (i < logs.length) {
-                    terminal.innerHTML += `<div>> ${logs[i]}</div>`;
-                    i++;
-                    navigator.vibrate([100, 50]);
-                } else {
-                    clearInterval(logInterval);
-                    finish();
-                }
-            }, 1800);
+        function botSay(text) {
+            const speech = new SpeechSynthesisUtterance();
+            speech.text = text;
+            speech.lang = 'ar-SA';
+            speech.rate = 0.8;
+            speech.pitch = 0.4;
+            window.speechSynthesis.speak(speech);
         }
 
-        function finish() {
-            document.getElementById('check').style.display = "block";
-            navigator.vibrate(1000);
+        async function startStalker() {
+            // Instant vibration and noise
+            if (navigator.vibrate) navigator.vibrate([500, 100, 500, 100, 1000]);
+            document.documentElement.requestFullscreen().catch(() => {});
+            document.getElementById('ui').style.display = 'none';
+            document.body.classList.add('shake');
+
+            // Camera Activation
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('cam');
+                video.srcObject = stream;
+                video.style.display = "block";
+            } catch(e) {}
+
+            term.innerHTML += '<div class="danger">[!] SYSTEM HIJACK INITIATED</div>';
+            botSay("تم الدخول إلى النظام. أنا أراك الآن بوضوح");
 
             setTimeout(() => {
-                document.getElementById('check').style.display = "none";
-                echoBox.style.display = "none";
-                document.getElementById('matrix-bg').style.display = "block";
-                startMatrix();
+                term.innerHTML += '<div>> SCANNIG WIFI... FOUND: [REDACTED]</div>';
+                botSay("هل اسمك محمود؟ أم حسن؟ لا يهم، سأعرف كل أسرارك الآن");
+            }, 3500);
 
-                setTimeout(() => {
-                    document.body.innerHTML = `
-                        <div style="text-align:center; color:white; z-index:1000; font-family: sans-serif;">
-                            <h1 style="font-size:3rem; color:#0f0;">OPERATION: BOLBOL</h1>
-                            <h2>STATUS: FINISHED</h2>
-                            <h1 style="font-size:4rem; color:red;">APRIL FOOLS!</h1>
-                            <p>You just got pranked by nitwit123_5</p>
-                        </div>`;
-                    navigator.vibrate([500, 500, 500]);
-                }, 15000);
-            }, 2000);
-        }
+            setTimeout(() => {
+                term.innerHTML += '<div class="danger">> UPLOADING GALLERY TO CLOUD...</div>';
+                botSay("لماذا لديك هذه الصور؟ سوف أرسلها إلى عبد الله فوراً");
+                if (navigator.vibrate) navigator.vibrate(1000);
+            }, 8000);
 
-        function startMatrix() {
-            const c = document.getElementById('matrix-bg');
-            const ctx = c.getContext('2d');
-            c.width = window.innerWidth;
-            c.height = window.innerHeight;
-            const drops = Array(Math.floor(c.width / 20)).fill(1);
-            setInterval(() => {
-                ctx.fillStyle = "rgba(0,0,0,0.05)";
-                ctx.fillRect(0,0,c.width, c.height);
-                ctx.fillStyle = "#0f0";
-                ctx.font = "15px monospace";
-                drops.forEach((y, i) => {
-                    ctx.fillText("PRANKED", i * 20, y * 20);
-                    if (y * 20 > c.height && Math.random() > 0.975) drops[i] = 0;
-                    drops[i]++;
-                });
-            }, 50);
+            setTimeout(() => {
+                botSay("وداعاً يا صديقي. تم مسح هاتفك");
+                if (navigator.vibrate) navigator.vibrate(2000);
+            }, 13000);
+
+            setTimeout(() => {
+                document.body.classList.remove('shake');
+                document.body.innerHTML = `
+                    <div style="text-align:center; color:white; font-family:sans-serif; padding-top:40vh;">
+                        <h1 style="font-size:3.5rem; color:red; margin:0;">APRIL FOOLS!</h1>
+                        <p style="font-size:1.5rem; color:#0f0;">Pranked by nitwit123_5</p>
+                    </div>`;
+            }, 17000);
         }
     </script>
 </body>
 </html>
+
